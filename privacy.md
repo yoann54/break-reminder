@@ -1,3 +1,9 @@
+---
+layout: default
+title: Politique de confidentialité
+permalink: /privacy.html
+---
+
 # Politique de confidentialité — Break Reminder
 
 _Dernière mise à jour : 10 mai 2026_
@@ -54,4 +60,5 @@ jour. Les changements substantiels seront signalés dans les notes de version.
 
 ## Contact
 
-Pour toute question relative à cette politique : `<EMAIL_DEVELOPPEUR_A_COMPLETER>`
+Pour toute question relative à cette politique :
+[yoanncooljazz@gmail.com](mailto:yoanncooljazz@gmail.com)

@@ -1,0 +1,15 @@
+title: Break Reminder
+description: Extension Chrome de rappels de pause — politique de confidentialité et support.
+theme: jekyll-theme-cayman
+
+# N'inclure dans le site Pages que la privacy. Le reste du repo (code de
+# l'extension, store/, icons/) est ignoré pour le rendu Jekyll.
+include:
+  - privacy.md
+exclude:
+  - "*.js"
+  - "*.css"
+  - "*.html"
+  - "*.json"
+  - icons/
+  - store/
