@@ -1,7 +1,6 @@
 ---
 layout: default
 title: Politique de confidentialité
-permalink: /privacy.html
 ---
 
 # Politique de confidentialité — Break Reminder
