@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Break Reminder</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 data-i18n="app.name">Break Reminder</h1>
+
+    <div class="info-row">
+      <div class="info-cell">
+        <span class="info-label" data-i18n="popup.nextBreak">Prochaine pause</span>
+        <span id="nextBreak" class="info-value">—</span>
+      </div>
+      <div class="info-cell">
+        <span class="info-label" data-i18n="popup.todayBreaks">Pauses aujourd’hui</span>
+        <span id="todayCount" class="info-value">0</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="workInterval" data-i18n="popup.workInterval">Intervalle de travail (minutes)</label>
+      <input type="number" id="workInterval" min="1" max="240" />
+    </div>
+
+    <div class="row">
+      <label for="breakDuration" data-i18n="popup.breakDuration">Durée de la pause (secondes)</label>
+      <input type="number" id="breakDuration" min="5" max="3600" />
+    </div>
+
+    <div class="row library-row">
+      <div class="row-head">
+        <label data-i18n="popup.library">Bibliothèque</label>
+        <span id="libraryCount" class="count"></span>
+      </div>
+      <button id="openOptions" class="library-btn" type="button">
+        <span class="library-btn-text" data-i18n="popup.openOptions">Toutes les options</span>
+        <span class="library-btn-arrow">→</span>
+      </button>
+    </div>
+
+    <div class="actions">
+      <button id="toggleBtn" class="primary"></button>
+      <button id="testBtn" class="secondary" data-i18n="common.test">Tester la pause</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
