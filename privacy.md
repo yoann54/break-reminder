@@ -39,7 +39,6 @@ hors de l'appareil. Désinstaller l'extension les supprime.
 | `storage` | Sauvegarder localement les préférences et la bibliothèque |
 | `alarms` | Déclencher le rappel de pause à intervalle régulier |
 | `scripting` | Injecter le script de l'overlay de pause si nécessaire |
-| `tabs` | Identifier l'onglet actif où afficher l'overlay |
 | `idle` | Ne pas afficher de pause si l'utilisateur est déjà inactif |
 | `unlimitedStorage` | Permettre de stocker plusieurs images personnelles |
 | `host_permissions: <all_urls>` | Afficher l'overlay de pause sur l'onglet actif, quel que soit le site |

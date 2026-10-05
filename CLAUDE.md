@@ -29,7 +29,7 @@ donnée envoyée sur internet.
 - Page d'accueil GitHub Pages avec lien vers la privacy
   → https://yoann54.github.io/break-reminder/
 - Documentation de soumission complète : [store/STORE_LISTING.md](store/STORE_LISTING.md)
-  (description courte/longue, single purpose, 7 justifications de permissions, privacy practices form, checklist finale)
+  (description courte/longue, single purpose, 6 justifications de permissions, privacy practices form, checklist finale)
 - Promo tile small 440×280 : [store/promo-440x280.png](store/promo-440x280.png)
 - Email de contact dans la privacy : `yoanncooljazz@gmail.com`
 
@@ -43,16 +43,18 @@ donnée envoyée sur internet.
      - Page d'options : bibliothèque d'images
      - Popup avec compte à rebours
      - Stats / 7 derniers jours
-   - Les déposer dans `store/screenshots/` (à créer, restera hors zip)
+   - Les déposer dans `store/screenshots/` (hors zip) — `01-overlay.png` y est déjà
 
 2. **Créer le compte développeur Chrome Web Store** (frais unique 5 USD)
    → https://chrome.google.com/webstore/devconsole
 
-3. **Construire le zip de soumission** (exclure dossier `store/`, `_config.yml`, `index.md`, `privacy.md`, `.git/`) :
+3. **Construire le zip de soumission** — liste d'inclusion explicite, pour ne
+   jamais embarquer `.claude/`, `store/`, screenshots ou fichiers Pages :
    ```bash
-   zip -r break-reminder-1.1.0.zip . \
-     -x "store/*" "icons/icon.svg" "privacy.md" "index.md" "_config.yml" \
-        ".git/*" ".gitignore" "CLAUDE.md" "*.md"
+   rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
+     manifest.json background.js content.js content.css i18n.js \
+     popup.html popup.js popup.css options.html options.js options.css \
+     icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
    ```
 
 4. **Tester le zip une dernière fois** : décompresser dans un dossier temporaire et le charger via `chrome://extensions` pour vérifier qu'il marche tel quel.
@@ -90,9 +92,10 @@ n'a pas de feedback. À voir éventuellement après publication.
 curl -s -o /dev/null -w "%{http_code}\n" https://yoann54.github.io/break-reminder/privacy.html
 
 # Construire le zip de soumission
-zip -r break-reminder-1.1.0.zip . \
-  -x "store/*" "icons/icon.svg" "privacy.md" "index.md" \
-     "_config.yml" ".git/*" ".gitignore" "CLAUDE.md" "*.md"
+rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
+  manifest.json background.js content.js content.css i18n.js \
+  popup.html popup.js popup.css options.html options.js options.css \
+  icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
 ```
 
 ## Carte des fichiers

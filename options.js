@@ -407,20 +407,83 @@ async function exportData() {
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
 }
 
+const NUMBER_BOUNDS = {
+  workInterval: [1, 240],
+  breakDuration: [5, 3600],
+  snoozeDuration: [1, 120],
+  idleThreshold: [0, 120]
+};
+const BOOLEAN_KEYS = ['isActive', 'skipFullscreen', 'activeHoursEnabled', 'soundEnabled', 'quotesEnabled'];
+const TIME_KEYS = ['activeHoursStart', 'activeHoursEnd', 'morningEnd', 'afternoonEnd'];
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Keep only known keys with well-formed values; anything invalid is dropped
+// so the current setting is preserved instead of breaking the scheduler.
+function sanitizeImport(data) {
+  const out = {};
+  for (const [k, [min, max]] of Object.entries(NUMBER_BOUNDS)) {
+    const n = Number(data[k]);
+    if (k in data && Number.isFinite(n)) out[k] = Math.max(min, Math.min(max, Math.round(n)));
+  }
+  for (const k of BOOLEAN_KEYS) {
+    if (typeof data[k] === 'boolean') out[k] = data[k];
+  }
+  for (const k of TIME_KEYS) {
+    if (typeof data[k] === 'string' && TIME_RE.test(data[k])) out[k] = data[k];
+  }
+  if (Array.isArray(data.activeHoursDays)) {
+    out.activeHoursDays = [...new Set(data.activeHoursDays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort();
+  }
+  if (data.language === 'auto' || I18N_SUPPORTED.includes(data.language)) out.language = data.language;
+  if (data.quoteCategories && typeof data.quoteCategories === 'object') {
+    out.quoteCategories = {};
+    for (const c of QUOTE_CATEGORIES) {
+      if (typeof data.quoteCategories[c] === 'boolean') out.quoteCategories[c] = data.quoteCategories[c];
+    }
+  }
+  if (Array.isArray(data.quotes)) {
+    out.quotes = data.quotes
+      .filter((q) => q && typeof q.text === 'string' && q.text.trim())
+      .map((q) => ({
+        id: typeof q.id === 'string' ? q.id : cryptoId(),
+        text: q.text,
+        category: QUOTE_CATEGORIES.includes(q.category) ? q.category : 'other'
+      }));
+  }
+  if (Array.isArray(data.gifList)) {
+    out.gifList = data.gifList
+      .filter((g) => g && typeof g.data === 'string' && g.data.startsWith('data:image/'))
+      .map((g) => ({
+        id: typeof g.id === 'string' ? g.id : cryptoId(),
+        name: typeof g.name === 'string' ? g.name : 'image',
+        data: g.data,
+        category: GIF_CATEGORIES.includes(g.category) ? g.category : 'auto'
+      }));
+  }
+  if (data.stats && typeof data.stats === 'object') {
+    const count = (v) => (Number.isFinite(Number(v)) && Number(v) >= 0 ? Math.round(Number(v)) : 0);
+    const history = {};
+    if (data.stats.history && typeof data.stats.history === 'object') {
+      for (const [day, v] of Object.entries(data.stats.history)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(day)) history[day] = count(v);
+      }
+    }
+    out.stats = {
+      totalBreaks: count(data.stats.totalBreaks),
+      snoozedBreaks: count(data.stats.snoozedBreaks),
+      skippedBreaks: count(data.stats.skippedBreaks),
+      history
+    };
+  }
+  return out;
+}
+
 async function importData(file) {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
     if (!data || typeof data !== 'object') throw new Error('invalid');
-    const allowed = [
-      'workInterval', 'breakDuration', 'isActive', 'idleThreshold',
-      'snoozeDuration', 'skipFullscreen',
-      'activeHoursEnabled', 'activeHoursStart', 'activeHoursEnd', 'activeHoursDays',
-      'soundEnabled', 'quotesEnabled', 'quoteCategories', 'quotes',
-      'gifList', 'language', 'stats'
-    ];
-    const toSet = {};
-    for (const k of allowed) if (k in data) toSet[k] = data[k];
+    const toSet = sanitizeImport(data);
     await setStorage(toSet);
     const summary = [];
     if (Array.isArray(toSet.gifList)) summary.push(`${toSet.gifList.length} ${toSet.gifList.length > 1 ? tt('common.images') : tt('common.image')}`);

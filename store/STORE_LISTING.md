@@ -75,9 +75,6 @@ te font sourire, et laisse l'extension t'inviter à respirer.
 ### `scripting`
 > Injecter le content script de l'overlay sur l'onglet actif au moment du rappel, lorsque l'injection automatique via `content_scripts` n'a pas eu lieu (cas où l'onglet existait avant l'installation/activation).
 
-### `tabs`
-> Identifier l'onglet actif (`chrome.tabs.query({active: true})`) afin d'y envoyer le message qui déclenche l'affichage de l'overlay. L'extension ne lit pas l'URL, le titre ni le contenu des autres onglets.
-
 ### `idle`
 > Détecter si l'utilisateur est inactif (clavier/souris) au moment du rappel pour ne pas afficher de pause inutile lorsqu'il est déjà loin de son ordinateur. Améliore la pertinence des rappels et la précision des statistiques.
 
@@ -85,7 +82,7 @@ te font sourire, et laisse l'extension t'inviter à respirer.
 > Permettre à l'utilisateur de stocker localement plusieurs images personnelles (GIFs / photos) encodées en data URL dans `chrome.storage.local`, sans être limité à 5 Mo. Tout est local, rien n'est synchronisé.
 
 ### `host_permissions: <all_urls>`
-> Afficher l'overlay de pause sur l'onglet actuellement actif, quel que soit le site visité. L'extension n'accède qu'à l'onglet actif au moment du rappel et n'y injecte qu'un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages web.
+> Afficher l'overlay de pause sur l'onglet actuellement actif, quel que soit le site visité. L'extension n'accède qu'à l'onglet actif au moment du rappel et n'y injecte qu'un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages web. Seule l'URL de l'onglet actif est consultée, localement, pour ne pas tenter d'afficher l'overlay sur les pages internes du navigateur (`chrome://`, etc.) ; elle n'est ni stockée ni transmise.
 
 ## 6. Privacy practices form
 

@@ -83,7 +83,7 @@ async function setBadge(text, color = '#7a4dff') {
 }
 
 async function updateBadge() {
-  const s = await getSettings();
+  const s = await chrome.storage.local.get(['isActive', 'nextBreakAt']);
   if (!s.isActive || !s.nextBreakAt) {
     await setBadge('');
     return;
@@ -121,7 +121,8 @@ async function scheduleNextBreak(overrideMinutes) {
     await setBadge('');
     return;
   }
-  let minutes = overrideMinutes ?? Number(s.workInterval) ?? 25;
+  let minutes = Number(overrideMinutes) || Number(s.workInterval) || DEFAULTS.workInterval;
+  minutes = Math.max(1, minutes);
   if (s.activeHoursEnabled && !isWithinActiveHours(s)) {
     const wait = minutesUntilActiveStart(s);
     if (wait != null) minutes = Math.max(minutes, wait);
@@ -240,6 +241,7 @@ async function triggerBreak(opts = {}) {
     shown = !!(res && res.shown);
   } catch (e) {
     try {
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] });
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
       const res = await chrome.tabs.sendMessage(tab.id, payload);
       shown = !!(res && res.shown);
