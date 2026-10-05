@@ -6,25 +6,6 @@
   let countdownTimer = null;
   let escHandler = null;
 
-  function playBell(start = true) {
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      const ctx = new Ctx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = start ? 880 : 660;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.7);
-      osc.onended = () => ctx.close();
-    } catch (e) { /* noop */ }
-  }
-
   function removeOverlay(opts = {}) {
     if (countdownTimer) {
       clearInterval(countdownTimer);
@@ -38,8 +19,7 @@
       overlayEl.parentNode.removeChild(overlayEl);
     }
     overlayEl = null;
-    if (opts.playEnd && opts.soundEnabled) playBell(false);
-    chrome.runtime.sendMessage({ type: 'BREAK_DISMISSED' }).catch(() => {});
+    chrome.runtime.sendMessage({ type: 'BREAK_DISMISSED', completed: !!opts.completed }).catch(() => {});
   }
 
   function fmtCountdown(template, seconds) {
@@ -97,7 +77,7 @@
     const resumeBtn = document.createElement('button');
     resumeBtn.className = 'br-btn';
     resumeBtn.textContent = labels.resume || 'Reprendre';
-    resumeBtn.addEventListener('click', () => removeOverlay({ playEnd: true, soundEnabled: payload.soundEnabled }));
+    resumeBtn.addEventListener('click', () => removeOverlay({ completed: true }));
 
     const snoozeBtn = document.createElement('button');
     snoozeBtn.className = 'br-btn-secondary';
@@ -118,7 +98,7 @@
     countdownTimer = setInterval(() => {
       remaining -= 1;
       if (remaining <= 0) {
-        removeOverlay({ playEnd: true, soundEnabled: payload.soundEnabled });
+        removeOverlay({ completed: true });
         return;
       }
       counter.textContent = fmtCountdown(labels.countdown, remaining);
@@ -128,12 +108,11 @@
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        removeOverlay({ playEnd: true, soundEnabled: payload.soundEnabled });
+        removeOverlay({ completed: true });
       }
     };
     document.addEventListener('keydown', escHandler, true);
 
-    if (payload.soundEnabled) playBell(true);
     return true;
   }
 

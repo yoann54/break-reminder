@@ -146,6 +146,30 @@ async function recordStat(key) {
   await chrome.storage.local.set({ stats: next });
 }
 
+let offscreenCreating = null;
+
+async function ensureOffscreen() {
+  const contexts = await chrome.runtime.getContexts({ contextTypes: ['OFFSCREEN_DOCUMENT'] });
+  if (contexts.length) return;
+  if (!offscreenCreating) {
+    offscreenCreating = chrome.offscreen.createDocument({
+      url: 'offscreen.html',
+      reasons: ['AUDIO_PLAYBACK'],
+      justification: 'Play the optional bell at the start and end of a break.'
+    }).finally(() => { offscreenCreating = null; });
+  }
+  await offscreenCreating;
+}
+
+async function playBell(start) {
+  try {
+    await ensureOffscreen();
+    await chrome.runtime.sendMessage({ target: 'offscreen', type: 'PLAY_BELL', start });
+  } catch (e) {
+    console.warn('[BreakReminder] bell failed', e);
+  }
+}
+
 function pickGif(list, now, morningEnd, afternoonEnd) {
   if (!Array.isArray(list) || !list.length) return null;
   const d = now || new Date();
@@ -202,7 +226,7 @@ async function triggerBreak(opts = {}) {
     } catch (e) { /* noop */ }
   }
 
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   const tab = tabs[0];
   if (!tab || !tab.id) {
     await scheduleNextBreak();
@@ -229,7 +253,6 @@ async function triggerBreak(opts = {}) {
     duration: Number(s.breakDuration) || 60,
     snoozeDuration: Number(s.snoozeDuration) || 5,
     skipFullscreen: !!s.skipFullscreen,
-    soundEnabled: !!s.soundEnabled,
     gif: picked ? { data: picked.data, name: picked.name } : null,
     quote,
     labels
@@ -250,8 +273,10 @@ async function triggerBreak(opts = {}) {
     }
   }
 
+  // A shown break is only counted once its outcome is known: completed via
+  // BREAK_DISMISSED, or snoozed via SNOOZE.
   if (shown) {
-    await recordStat('totalBreaks');
+    if (s.soundEnabled) await playBell(true);
   } else if (!force) {
     await recordStat('skippedBreaks');
   }
@@ -263,6 +288,13 @@ async function snooze(minutesArg) {
   const minutes = Number(minutesArg) || Number(s.snoozeDuration) || 5;
   await recordStat('snoozedBreaks');
   await scheduleNextBreak(minutes);
+}
+
+async function onBreakDismissed(completed) {
+  if (!completed) return;
+  await recordStat('totalBreaks');
+  const { soundEnabled } = await chrome.storage.local.get('soundEnabled');
+  if (soundEnabled) await playBell(false);
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -313,8 +345,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === 'BREAK_DISMISSED') {
-    sendResponse({ ok: true });
-    return false;
+    onBreakDismissed(!!msg.completed).then(() => sendResponse({ ok: true }));
+    return true;
   }
   if (msg.type === 'GET_STATE') {
     getSettings().then(sendResponse);

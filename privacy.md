@@ -40,6 +40,7 @@ hors de l'appareil. Désinstaller l'extension les supprime.
 | `alarms` | Déclencher le rappel de pause à intervalle régulier |
 | `scripting` | Injecter le script de l'overlay de pause si nécessaire |
 | `idle` | Ne pas afficher de pause si l'utilisateur est déjà inactif |
+| `offscreen` | Jouer le signal sonore optionnel de début / fin de pause (son généré localement) |
 | `unlimitedStorage` | Permettre de stocker plusieurs images personnelles |
 | `host_permissions: <all_urls>` | Afficher l'overlay de pause sur l'onglet actif, quel que soit le site |
 

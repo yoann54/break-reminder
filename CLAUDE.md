@@ -29,7 +29,7 @@ donnée envoyée sur internet.
 - Page d'accueil GitHub Pages avec lien vers la privacy
   → https://yoann54.github.io/break-reminder/
 - Documentation de soumission complète : [store/STORE_LISTING.md](store/STORE_LISTING.md)
-  (description courte/longue, single purpose, 6 justifications de permissions, privacy practices form, checklist finale)
+  (description courte/longue, single purpose, 7 justifications de permissions, privacy practices form, checklist finale)
 - Promo tile small 440×280 : [store/promo-440x280.png](store/promo-440x280.png)
 - Email de contact dans la privacy : `yoanncooljazz@gmail.com`
 
@@ -54,6 +54,7 @@ donnée envoyée sur internet.
    rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
      manifest.json background.js content.js content.css i18n.js \
      popup.html popup.js popup.css options.html options.js options.css \
+     offscreen.html offscreen.js \
      icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
    ```
 
@@ -95,6 +96,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://yoann54.github.io/break-reminde
 rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
   manifest.json background.js content.js content.css i18n.js \
   popup.html popup.js popup.css options.html options.js options.css \
+  offscreen.html offscreen.js \
   icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
 ```
 
@@ -108,6 +110,7 @@ Break-Reminder/
 ├── popup.html/.js/.css      # Popup toolbar
 ├── options.html/.js/.css    # Page d'options complète
 ├── i18n.js                  # Traductions FR/EN inline
+├── offscreen.html/.js       # Lecture du son (document offscreen MV3)
 ├── icons/                   # PNG 16/32/48/128 + SVG source
 ├── privacy.md               # Privacy policy (sert via GH Pages)
 ├── index.md                 # Page d'accueil GH Pages

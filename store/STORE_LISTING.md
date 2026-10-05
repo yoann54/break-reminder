@@ -78,6 +78,9 @@ te font sourire, et laisse l'extension t'inviter à respirer.
 ### `idle`
 > Détecter si l'utilisateur est inactif (clavier/souris) au moment du rappel pour ne pas afficher de pause inutile lorsqu'il est déjà loin de son ordinateur. Améliore la pertinence des rappels et la précision des statistiques.
 
+### `offscreen`
+> Jouer le signal sonore optionnel (désactivé par défaut) au début et à la fin d'une pause. Un document offscreen est le seul moyen pour une extension MV3 de produire du son de façon fiable : le son généré localement (Web Audio) n'utilise aucun fichier ni aucune ressource externe, et le document se ferme automatiquement après lecture.
+
 ### `unlimitedStorage`
 > Permettre à l'utilisateur de stocker localement plusieurs images personnelles (GIFs / photos) encodées en data URL dans `chrome.storage.local`, sans être limité à 5 Mo. Tout est local, rien n'est synchronisé.
 
