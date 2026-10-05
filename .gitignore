@@ -1,0 +1,5 @@
+# Config locale Claude Code
+.claude/
+
+# Zip de soumission (généré, voir CLAUDE.md)
+*.zip

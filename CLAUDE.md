@@ -1,7 +1,7 @@
 # CLAUDE.md — Break Reminder
 
-Notes de contexte pour reprendre le travail sur la soumission Chrome Web Store
-de cette extension.
+Notes de contexte pour maintenir cette extension, publiée sur le Chrome Web
+Store (1.1.0 publiée le 12 mai 2026).
 
 ## Le projet en 1 phrase
 
@@ -33,45 +33,48 @@ donnée envoyée sur internet.
 - Promo tile small 440×280 : [store/promo-440x280.png](store/promo-440x280.png)
 - Email de contact dans la privacy : `yoanncooljazz@gmail.com`
 
-### ❌ Reste à faire (par ordre de priorité)
+### 🚀 Publier une mise à jour
 
-1. **Capturer 1 à 5 screenshots 1280×800** depuis Chrome :
-   - Charger l'extension non empaquetée (`chrome://extensions` → mode dev → "Charger l'extension non empaquetée")
-   - Vues à capturer :
-     - Overlay de pause en action (avec un GIF + citation)
-     - Page d'options : timing + plages horaires
-     - Page d'options : bibliothèque d'images
-     - Popup avec compte à rebours
-     - Stats / 7 derniers jours
-   - Les déposer dans `store/screenshots/` (hors zip) — `01-overlay.png` y est déjà
+La version du `manifest.json` doit être **strictement supérieure** à celle en
+ligne, sinon le store refuse le package.
 
-2. **Créer le compte développeur Chrome Web Store** (frais unique 5 USD)
-   → https://chrome.google.com/webstore/devconsole
-
-3. **Construire le zip de soumission** — liste d'inclusion explicite, pour ne
-   jamais embarquer `.claude/`, `store/`, screenshots ou fichiers Pages :
+1. Incrémenter `version` dans [manifest.json](manifest.json).
+2. Construire le zip (liste d'inclusion explicite, nom tiré du manifest) :
    ```bash
-   rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
+   V=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
+   rm -f "break-reminder-$V.zip" && zip "break-reminder-$V.zip" \
      manifest.json background.js content.js content.css i18n.js \
      popup.html popup.js popup.css options.html options.js options.css \
      offscreen.html offscreen.js \
      icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
    ```
+3. Tester le zip : le décompresser dans un dossier temporaire, le charger via
+   `chrome://extensions` (version de dev désactivée) et vérifier qu'il marche tel quel.
+4. Developer Console → Break Reminder → **Package** → importer le nouveau zip.
+5. Si les permissions changent : mettre à jour l'onglet **Confidentialité**
+   (justifications depuis [store/STORE_LISTING.md](store/STORE_LISTING.md)) et
+   pousser [privacy.md](privacy.md) **avant** de soumettre.
 
-4. **Tester le zip une dernière fois** : décompresser dans un dossier temporaire et le charger via `chrome://extensions` pour vérifier qu'il marche tel quel.
+### 📦 1.1.1 (en préparation)
 
-5. **Soumettre** sur le Developer Console :
-   - Upload du zip
-   - Recopier les textes depuis [store/STORE_LISTING.md](store/STORE_LISTING.md)
-   - URL privacy : `https://yoann54.github.io/break-reminder/privacy.html`
-   - Catégorie : Productivité
-   - Upload des screenshots et du promo tile
+- Permission `tabs` retirée, `offscreen` ajoutée (son de début/fin de pause)
+  → sur la console : supprimer la justification `tabs`, ajouter `offscreen`
+- Stats : une pause reportée n'est plus aussi comptée comme prise
+- Overlay stylé même sur les onglets ouverts avant l'installation
+- Badge allégé, import JSON validé
+- Screenshots : `store/screenshots/01-overlay.png` (4 autres possibles)
 
 ## Audit identifié mais non corrigé
 
-Petit point fonctionnel non bloquant relevé dans [background.js:251-256](background.js#L251-L256) :
-quand un test forcé depuis le popup échoue (overlay non affiché), l'utilisateur
-n'a pas de feedback. À voir éventuellement après publication.
+- Pas de feedback dans le popup quand « Tester la pause » échoue
+  (`triggerBreak` pourrait renvoyer `shown`).
+- Overlay inséré dans le DOM de la page : le CSS du site peut l'altérer et la
+  page peut lire l'image → iframe d'extension ou shadow DOM fermé.
+- Compte à rebours en `setInterval`, ralenti dans un onglet en arrière-plan.
+- Le délai suivant part du début de la pause ; modifier une plage horaire
+  remet le compte à rebours à zéro.
+- Manifest non localisé (pas de `_locales/`), overlay sans `role="dialog"`
+  ni gestion du focus.
 
 ## Site GitHub Pages
 
@@ -92,8 +95,9 @@ n'a pas de feedback. À voir éventuellement après publication.
 # Vérifier le build Pages
 curl -s -o /dev/null -w "%{http_code}\n" https://yoann54.github.io/break-reminder/privacy.html
 
-# Construire le zip de soumission
-rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
+# Construire le zip de soumission (version lue dans le manifest)
+V=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
+rm -f "break-reminder-$V.zip" && zip "break-reminder-$V.zip" \
   manifest.json background.js content.js content.css i18n.js \
   popup.html popup.js popup.css options.html options.js options.css \
   offscreen.html offscreen.js \
@@ -104,7 +108,7 @@ rm -f break-reminder-1.1.0.zip && zip break-reminder-1.1.0.zip \
 
 ```
 Break-Reminder/
-├── manifest.json            # MV3 manifest (v1.1.0, icons déclarées)
+├── manifest.json            # MV3 manifest (version, permissions, icônes)
 ├── background.js            # Service worker (alarmes, idle, badge)
 ├── content.js / content.css # Overlay de pause
 ├── popup.html/.js/.css      # Popup toolbar
