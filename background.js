@@ -47,31 +47,30 @@ function isWithinActiveHours(settings, now = new Date()) {
   return minutes >= start || minutes < end;
 }
 
-function minutesUntilActiveStart(settings, now = new Date()) {
+function nextActiveStart(settings, from = new Date()) {
   if (!settings.activeHoursEnabled) return null;
   const days = Array.isArray(settings.activeHoursDays) ? settings.activeHoursDays : [1, 2, 3, 4, 5];
   if (!days.length) return null;
   const start = parseHM(settings.activeHoursStart);
   for (let offset = 0; offset < 8; offset += 1) {
-    const d = new Date(now);
+    const d = new Date(from);
     d.setDate(d.getDate() + offset);
     if (!days.includes(d.getDay())) continue;
-    d.setHours(0, 0, 0, 0);
-    const target = new Date(d.getTime() + start * 60 * 1000);
-    if (target.getTime() > now.getTime()) {
-      return Math.max(1, Math.round((target.getTime() - now.getTime()) / 60000));
-    }
+    d.setHours(Math.floor(start / 60), start % 60, 0, 0);
+    if (d.getTime() > from.getTime()) return d.getTime();
   }
   return null;
 }
 
 async function getSettings() {
-  const data = await chrome.storage.local.get(Object.keys(DEFAULTS).concat(['nextBreakAt']));
+  const data = await chrome.storage.local.get(Object.keys(DEFAULTS).concat(['nextBreakAt', 'cycleStartAt', 'cycleOverride']));
   const merged = { ...DEFAULTS };
   for (const k of Object.keys(DEFAULTS)) {
     if (data[k] !== undefined) merged[k] = data[k];
   }
   merged.nextBreakAt = data.nextBreakAt || null;
+  merged.cycleStartAt = data.cycleStartAt || null;
+  merged.cycleOverride = data.cycleOverride || null;
   return merged;
 }
 
@@ -112,24 +111,35 @@ async function clearBadgeTick() {
   await chrome.alarms.clear(ALARM_BADGE);
 }
 
-async function scheduleNextBreak(overrideMinutes) {
+// A work cycle starts at cycleStartAt and lasts cycleOverride (snooze) or
+// workInterval minutes. opts.keepCycle recomputes the current cycle after a
+// settings change instead of restarting it; opts.startAt starts the cycle
+// later (at the expected end of a break that is being shown).
+async function scheduleNextBreak(overrideMinutes, opts = {}) {
   await chrome.alarms.clear(ALARM_BREAK);
   const s = await getSettings();
   if (!s.isActive) {
-    await chrome.storage.local.remove('nextBreakAt');
+    await chrome.storage.local.remove(['nextBreakAt', 'cycleStartAt', 'cycleOverride']);
     await clearBadgeTick();
     await setBadge('');
     return;
   }
-  let minutes = Number(overrideMinutes) || Number(s.workInterval) || DEFAULTS.workInterval;
-  minutes = Math.max(1, minutes);
-  if (s.activeHoursEnabled && !isWithinActiveHours(s)) {
-    const wait = minutesUntilActiveStart(s);
-    if (wait != null) minutes = Math.max(minutes, wait);
+  const now = Date.now();
+  let cycleStartAt = opts.startAt || now;
+  let cycleOverride = Number(overrideMinutes) || null;
+  if (opts.keepCycle && s.cycleStartAt) {
+    cycleStartAt = s.cycleStartAt;
+    cycleOverride = s.cycleOverride;
   }
-  const nextBreakAt = Date.now() + minutes * 60 * 1000;
-  await chrome.storage.local.set({ nextBreakAt });
-  chrome.alarms.create(ALARM_BREAK, { delayInMinutes: minutes });
+  const minutes = Math.max(1, cycleOverride || Number(s.workInterval) || DEFAULTS.workInterval);
+  // Chrome doesn't fire alarms sooner than 30 s ahead.
+  let nextBreakAt = Math.max(cycleStartAt + minutes * 60 * 1000, now + 30 * 1000);
+  if (s.activeHoursEnabled && !isWithinActiveHours(s, new Date(nextBreakAt))) {
+    const start = nextActiveStart(s, new Date(nextBreakAt));
+    if (start != null) nextBreakAt = start;
+  }
+  await chrome.storage.local.set({ nextBreakAt, cycleStartAt, cycleOverride });
+  chrome.alarms.create(ALARM_BREAK, { when: nextBreakAt });
   await ensureBadgeTick();
   await updateBadge();
 }
@@ -206,12 +216,12 @@ function pickQuote(list, categories, enabled) {
 async function triggerBreak(opts = {}) {
   const s = await getSettings();
   const force = !!opts.force;
-  if (!s.isActive && !force) return;
+  if (!s.isActive && !force) return false;
 
   if (!force && s.activeHoursEnabled && !isWithinActiveHours(s)) {
     await recordStat('skippedBreaks');
     await scheduleNextBreak();
-    return;
+    return false;
   }
 
   if (!force && s.idleThreshold && s.idleThreshold > 0) {
@@ -221,7 +231,7 @@ async function triggerBreak(opts = {}) {
       if (state !== 'active') {
         await recordStat('skippedBreaks');
         await scheduleNextBreak();
-        return;
+        return false;
       }
     } catch (e) { /* noop */ }
   }
@@ -229,13 +239,15 @@ async function triggerBreak(opts = {}) {
   const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   const tab = tabs[0];
   if (!tab || !tab.id) {
-    await scheduleNextBreak();
-    return;
+    if (!force) await scheduleNextBreak();
+    return false;
   }
   if (tab.url && /^(chrome|edge|about|chrome-extension):/i.test(tab.url)) {
-    await recordStat('skippedBreaks');
-    await scheduleNextBreak();
-    return;
+    if (!force) {
+      await recordStat('skippedBreaks');
+      await scheduleNextBreak();
+    }
+    return false;
   }
 
   const picked = pickGif(s.gifList, new Date(), s.morningEnd, s.afternoonEnd);
@@ -255,7 +267,8 @@ async function triggerBreak(opts = {}) {
     skipFullscreen: !!s.skipFullscreen,
     gif: picked ? { data: picked.data, name: picked.name } : null,
     quote,
-    labels
+    labels,
+    test: force
   };
 
   let shown = false;
@@ -264,7 +277,6 @@ async function triggerBreak(opts = {}) {
     shown = !!(res && res.shown);
   } catch (e) {
     try {
-      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] });
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
       const res = await chrome.tabs.sendMessage(tab.id, payload);
       shown = !!(res && res.shown);
@@ -274,13 +286,20 @@ async function triggerBreak(opts = {}) {
   }
 
   // A shown break is only counted once its outcome is known: completed via
-  // BREAK_DISMISSED, or snoozed via SNOOZE.
+  // BREAK_DISMISSED, or snoozed via SNOOZE. Both reschedule from that moment;
+  // until then the next break assumes the pause runs its full duration (it
+  // still fires if the tab is closed or navigated mid-break).
   if (shown) {
     if (s.soundEnabled) await playBell(true);
+    if (!force) {
+      const breakMs = (Number(s.breakDuration) || 60) * 1000;
+      await scheduleNextBreak(undefined, { startAt: Date.now() + breakMs });
+    }
   } else if (!force) {
     await recordStat('skippedBreaks');
+    await scheduleNextBreak();
   }
-  if (!force) await scheduleNextBreak();
+  return shown;
 }
 
 async function snooze(minutesArg) {
@@ -290,7 +309,9 @@ async function snooze(minutesArg) {
   await scheduleNextBreak(minutes);
 }
 
-async function onBreakDismissed(completed) {
+async function onBreakDismissed(completed, test) {
+  // A test break leaves the running cycle alone.
+  if (!test) await scheduleNextBreak();
   if (!completed) return;
   await recordStat('totalBreaks');
   const { soundEnabled } = await chrome.storage.local.get('soundEnabled');
@@ -341,11 +362,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === 'TRIGGER_BREAK_NOW') {
-    triggerBreak({ force: !!msg.force }).then(() => sendResponse({ ok: true }));
+    triggerBreak({ force: !!msg.force }).then((shown) => sendResponse({ ok: true, shown: !!shown }));
     return true;
   }
   if (msg.type === 'BREAK_DISMISSED') {
-    onBreakDismissed(!!msg.completed).then(() => sendResponse({ ok: true }));
+    onBreakDismissed(!!msg.completed, !!msg.test).then(() => sendResponse({ ok: true }));
     return true;
   }
   if (msg.type === 'GET_STATE') {
@@ -356,11 +377,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (
-    changes.workInterval || changes.isActive ||
+  if (changes.isActive) {
+    scheduleNextBreak();
+  } else if (
+    changes.workInterval ||
     changes.activeHoursEnabled || changes.activeHoursStart ||
     changes.activeHoursEnd || changes.activeHoursDays
   ) {
-    scheduleNextBreak();
+    scheduleNextBreak(undefined, { keepCycle: true });
   }
 });

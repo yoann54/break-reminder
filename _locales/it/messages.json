@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Promemoria delle pause con galleria di immagini personalizzabile, fasce orarie, citazioni e statistiche."
+  },
+  "commandToggleActive": {
+    "message": "Attiva / disattiva i promemoria"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Break reminders with a customizable image gallery, active hours, quotes and stats."
+  },
+  "commandToggleActive": {
+    "message": "Turn reminders on / off"
+  }
+}

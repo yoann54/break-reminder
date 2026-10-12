@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Recordatorio de pausas con galería de imágenes personalizable, franjas horarias, citas y estadísticas."
+  },
+  "commandToggleActive": {
+    "message": "Activar / desactivar los recordatorios"
+  }
+}

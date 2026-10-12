@@ -43,7 +43,7 @@ ligne, sinon le store refuse le package.
    ```bash
    V=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
    rm -f "break-reminder-$V.zip" && zip "break-reminder-$V.zip" \
-     manifest.json background.js content.js content.css i18n.js \
+     manifest.json background.js content.js i18n.js _locales/*/messages.json \
      popup.html popup.js popup.css options.html options.js options.css \
      offscreen.html offscreen.js \
      icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
@@ -63,18 +63,17 @@ ligne, sinon le store refuse le package.
 - Overlay stylé même sur les onglets ouverts avant l'installation
 - Badge allégé, import JSON validé
 - Screenshots : `store/screenshots/01-overlay.png` (4 autres possibles)
+- Overlay dans un shadow DOM fermé (CSS inline dans `content.js`, `content.css`
+  supprimé) : `role="dialog"`, focus piégé sur les boutons et restauré à la fermeture
+- Compte à rebours de l'overlay calculé sur l'heure de fin (plus de dérive en arrière-plan)
+- Pause suivante comptée à partir de la fin de la pause, et non plus de son début ;
+  changer l'intervalle ou les plages horaires conserve le temps déjà écoulé
+- « Tester la pause » affiche un avertissement si l'overlay n'a pas pu s'afficher
+- Manifest localisé via `_locales/` (8 langues, `default_locale` = `fr`)
 
 ## Audit identifié mais non corrigé
 
-- Pas de feedback dans le popup quand « Tester la pause » échoue
-  (`triggerBreak` pourrait renvoyer `shown`).
-- Overlay inséré dans le DOM de la page : le CSS du site peut l'altérer et la
-  page peut lire l'image → iframe d'extension ou shadow DOM fermé.
-- Compte à rebours en `setInterval`, ralenti dans un onglet en arrière-plan.
-- Le délai suivant part du début de la pause ; modifier une plage horaire
-  remet le compte à rebours à zéro.
-- Manifest non localisé (pas de `_locales/`), overlay sans `role="dialog"`
-  ni gestion du focus.
+Rien en suspens : les 5 points restants ont été corrigés pour la 1.1.1.
 
 ## Site GitHub Pages
 
@@ -98,7 +97,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://yoann54.github.io/break-reminde
 # Construire le zip de soumission (version lue dans le manifest)
 V=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
 rm -f "break-reminder-$V.zip" && zip "break-reminder-$V.zip" \
-  manifest.json background.js content.js content.css i18n.js \
+  manifest.json background.js content.js i18n.js _locales/*/messages.json \
   popup.html popup.js popup.css options.html options.js options.css \
   offscreen.html offscreen.js \
   icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png
@@ -110,10 +109,11 @@ rm -f "break-reminder-$V.zip" && zip "break-reminder-$V.zip" \
 Break-Reminder/
 ├── manifest.json            # MV3 manifest (version, permissions, icônes)
 ├── background.js            # Service worker (alarmes, idle, badge)
-├── content.js / content.css # Overlay de pause
+├── content.js               # Overlay de pause (shadow DOM fermé, CSS inline)
 ├── popup.html/.js/.css      # Popup toolbar
 ├── options.html/.js/.css    # Page d'options complète
-├── i18n.js                  # Traductions FR/EN inline
+├── i18n.js                  # Traductions de l'UI (8 langues)
+├── _locales/                # Nom/description du manifest localisés
 ├── offscreen.html/.js       # Lecture du son (document offscreen MV3)
 ├── icons/                   # PNG 16/32/48/128 + SVG source
 ├── privacy.md               # Privacy policy (sert via GH Pages)

@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Rappel de pause avec galerie d'images personnalisable, plages horaires, citations et stats."
+  },
+  "commandToggleActive": {
+    "message": "Activer / désactiver les rappels"
+  }
+}

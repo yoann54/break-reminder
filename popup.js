@@ -127,7 +127,9 @@ els.testBtn.addEventListener('click', async () => {
     return;
   }
   try {
-    await chrome.runtime.sendMessage({ type: 'TRIGGER_BREAK_NOW', force: true });
+    const res = await chrome.runtime.sendMessage({ type: 'TRIGGER_BREAK_NOW', force: true });
+    if (res && res.shown) window.close();
+    else setStatus(tt('popup.cantShowOverlay'), 'warn');
   } catch {
     setStatus(tt('popup.cantShowOverlay'), 'warn');
   }

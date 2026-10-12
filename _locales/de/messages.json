@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Pausenerinnerung mit anpassbarer Bildergalerie, Zeitfenstern, Zitaten und Statistiken."
+  },
+  "commandToggleActive": {
+    "message": "Erinnerungen ein- / ausschalten"
+  }
+}

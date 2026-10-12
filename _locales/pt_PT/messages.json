@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Lembrete de pausa com galeria de imagens personalizável, horários, citações e estatísticas."
+  },
+  "commandToggleActive": {
+    "message": "Ativar / desativar os lembretes"
+  }
+}

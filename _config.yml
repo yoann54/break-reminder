@@ -5,7 +5,8 @@ theme: jekyll-theme-cayman
 exclude:
   - background.js
   - content.js
-  - content.css
+  - offscreen.js
+  - offscreen.html
   - i18n.js
   - manifest.json
   - options.js

@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "Break Reminder",
   "version": "1.1.1",
-  "description": "Rappel de pause avec galerie d'images personnalisable, plages horaires, citations et stats.",
+  "default_locale": "fr",
+  "description": "__MSG_appDescription__",
   "permissions": ["storage", "alarms", "scripting", "idle", "offscreen", "unlimitedStorage"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -31,14 +32,13 @@
         "default": "Alt+Shift+B",
         "mac": "Alt+Shift+B"
       },
-      "description": "Activer / désactiver les rappels"
+      "description": "__MSG_commandToggleActive__"
     }
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["content.css"],
       "run_at": "document_idle",
       "all_frames": false
     }

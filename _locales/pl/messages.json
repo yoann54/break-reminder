@@ -1,0 +1,8 @@
+{
+  "appDescription": {
+    "message": "Przypomnienia o przerwach z konfigurowalną galerią obrazów, przedziałami godzin, cytatami i statystykami."
+  },
+  "commandToggleActive": {
+    "message": "Włącz / wyłącz przypomnienia"
+  }
+}
