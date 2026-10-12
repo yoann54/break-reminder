@@ -55,7 +55,7 @@ ligne, sinon le store refuse le package.
    (justifications depuis [store/STORE_LISTING.md](store/STORE_LISTING.md)) et
    pousser [privacy.md](privacy.md) **avant** de soumettre.
 
-### 📦 1.1.1 (en préparation)
+### ✅ 1.1.1 (publiée)
 
 - Permission `tabs` retirée, `offscreen` ajoutée (son de début/fin de pause)
   → sur la console : supprimer la justification `tabs`, ajouter `offscreen`
@@ -63,6 +63,11 @@ ligne, sinon le store refuse le package.
 - Overlay stylé même sur les onglets ouverts avant l'installation
 - Badge allégé, import JSON validé
 - Screenshots : `store/screenshots/01-overlay.png` (4 autres possibles)
+
+### 📦 1.1.2 (en préparation)
+
+Pas de changement de permissions.
+
 - Overlay dans un shadow DOM fermé (CSS inline dans `content.js`, `content.css`
   supprimé) : `role="dialog"`, focus piégé sur les boutons et restauré à la fermeture
 - Compte à rebours de l'overlay calculé sur l'heure de fin (plus de dérive en arrière-plan)
@@ -73,7 +78,7 @@ ligne, sinon le store refuse le package.
 
 ## Audit identifié mais non corrigé
 
-Rien en suspens : les 5 points restants ont été corrigés pour la 1.1.1.
+Rien en suspens : les 5 points restants ont été corrigés pour la 1.1.2.
 
 ## Site GitHub Pages
 
