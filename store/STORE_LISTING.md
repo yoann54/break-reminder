@@ -85,7 +85,7 @@ te font sourire, et laisse l'extension t'inviter à respirer.
 > Permettre à l'utilisateur de stocker localement plusieurs images personnelles (GIFs / photos) encodées en data URL dans `chrome.storage.local`, sans être limité à 5 Mo. Tout est local, rien n'est synchronisé.
 
 ### `host_permissions: <all_urls>`
-> Afficher l'overlay de pause sur l'onglet actuellement actif, quel que soit le site visité. L'extension n'accède qu'à l'onglet actif au moment du rappel et n'y injecte qu'un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages web. Seule l'URL de l'onglet actif est consultée, localement, pour ne pas tenter d'afficher l'overlay sur les pages internes du navigateur (`chrome://`, etc.) ; elle n'est ni stockée ni transmise.
+> Afficher l'overlay de pause sur l'onglet actuellement actif, quel que soit le site visité. L'extension n'accède qu'à l'onglet actif au moment du rappel et n'y injecte qu'un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages web. L'extension ne lit pas l'URL des onglets.
 
 ## 6. Privacy practices form
 

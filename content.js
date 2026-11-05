@@ -232,7 +232,9 @@
     }
     previousFocus = null;
     if (opts.notify !== false) {
-      chrome.runtime.sendMessage({ type: 'BREAK_DISMISSED', completed: !!opts.completed, test: isTest }).catch(() => {});
+      try {
+        chrome.runtime.sendMessage({ type: 'BREAK_DISMISSED', completed: !!opts.completed, test: isTest }).catch(() => {});
+      } catch (e) { /* extension reloaded: context invalidated */ }
     }
   }
 
@@ -305,8 +307,7 @@
     resumeBtn.type = 'button';
     resumeBtn.className = 'br-btn';
     resumeBtn.textContent = labels.resume || 'Reprendre';
-    resumeBtn.addEventListener('click', () => removeOverlay({ completed: true }));
-
+    
     const snoozeBtn = document.createElement('button');
     snoozeBtn.type = 'button';
     snoozeBtn.className = 'br-btn-secondary';
@@ -316,6 +317,8 @@
       chrome.runtime.sendMessage({ type: 'SNOOZE', minutes: snoozeMin }).catch(() => {});
       removeOverlay({ notify: false });
     });
+
+    resumeBtn.addEventListener('click', () => finish());
 
     actions.appendChild(resumeBtn);
     actions.appendChild(snoozeBtn);
@@ -332,6 +335,9 @@
     // Timers are throttled in background tabs: derive the remaining time from
     // the end timestamp instead of counting ticks.
     const endAt = Date.now() + duration * 1000;
+    // Ending the break before half of it has elapsed counts as skipping it.
+    const halfwayAt = endAt - (duration * 1000) / 2;
+    const finish = () => removeOverlay({ completed: Date.now() >= halfwayAt });
     const tick = () => {
       const remaining = Math.ceil((endAt - Date.now()) / 1000);
       if (remaining <= 0) {
@@ -349,7 +355,7 @@
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        removeOverlay({ completed: true });
+        finish();
         return;
       }
       if (e.key === 'Tab') {

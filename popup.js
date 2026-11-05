@@ -33,8 +33,8 @@ function renderToggle(isActive) {
   els.toggleBtn.classList.toggle('active', isActive);
 }
 
-function renderCount(list) {
-  const n = Array.isArray(list) ? list.length : 0;
+function renderCount(count) {
+  const n = Number(count) || 0;
   els.libraryCount.textContent = n ? `${n} ${n > 1 ? tt('common.images') : tt('common.image')}` : tt('common.empty');
 }
 
@@ -74,11 +74,11 @@ function startCountdown() {
 async function load() {
   currentLang = await getCurrentLang();
   applyDomI18n(document, currentLang);
-  const data = await chrome.storage.local.get(['workInterval', 'breakDuration', 'isActive', 'gifList', 'stats', 'nextBreakAt']);
+  const data = await chrome.storage.local.get(['workInterval', 'breakDuration', 'isActive', 'gifCount', 'stats', 'nextBreakAt']);
   els.workInterval.value = data.workInterval ?? 25;
   els.breakDuration.value = data.breakDuration ?? 60;
   renderToggle(!!data.isActive);
-  renderCount(data.gifList);
+  renderCount(data.gifCount);
   const tk = todayKey();
   els.todayCount.textContent = String((data.stats && data.stats.history && data.stats.history[tk]) || 0);
   await refreshNextBreak();
@@ -122,10 +122,6 @@ els.testBtn.addEventListener('click', async () => {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const tab = tabs[0];
   if (!tab?.id) return;
-  if (tab.url && /^(chrome|edge|about|chrome-extension):/i.test(tab.url)) {
-    setStatus(tt('popup.unsupportedPage'), 'warn');
-    return;
-  }
   try {
     const res = await chrome.runtime.sendMessage({ type: 'TRIGGER_BREAK_NOW', force: true });
     if (res && res.shown) window.close();
@@ -137,7 +133,7 @@ els.testBtn.addEventListener('click', async () => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.gifList) renderCount(changes.gifList.newValue);
+  if (changes.gifCount) renderCount(changes.gifCount.newValue);
   if (changes.isActive) {
     renderToggle(!!changes.isActive.newValue);
     refreshNextBreak();
@@ -149,10 +145,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
     els.todayCount.textContent = String((h && h[tk]) || 0);
   }
   if (changes.language) load();
-});
-
-window.addEventListener('unload', () => {
-  if (countdownTimer) clearInterval(countdownTimer);
 });
 
 load();

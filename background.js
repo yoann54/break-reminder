@@ -171,12 +171,23 @@ async function ensureOffscreen() {
   await offscreenCreating;
 }
 
+let bellsPending = 0;
+
+// The bell lasts 0.7 s; the offscreen document is closed once no bell is
+// left to play, so it doesn't stay open between breaks.
 async function playBell(start) {
+  bellsPending += 1;
   try {
     await ensureOffscreen();
     await chrome.runtime.sendMessage({ target: 'offscreen', type: 'PLAY_BELL', start });
+    await new Promise((r) => setTimeout(r, 1000));
   } catch (e) {
     console.warn('[BreakReminder] bell failed', e);
+  } finally {
+    bellsPending -= 1;
+    if (!bellsPending) {
+      try { await chrome.offscreen.closeDocument(); } catch (e) { /* already closed */ }
+    }
   }
 }
 
@@ -218,8 +229,9 @@ async function triggerBreak(opts = {}) {
   const force = !!opts.force;
   if (!s.isActive && !force) return false;
 
+  // Outside active hours or while the user is away, no break was due or
+  // missed: reschedule without counting anything.
   if (!force && s.activeHoursEnabled && !isWithinActiveHours(s)) {
-    await recordStat('skippedBreaks');
     await scheduleNextBreak();
     return false;
   }
@@ -229,7 +241,6 @@ async function triggerBreak(opts = {}) {
       const seconds = Math.max(15, Math.round(s.idleThreshold * 60));
       const state = await chrome.idle.queryState(seconds);
       if (state !== 'active') {
-        await recordStat('skippedBreaks');
         await scheduleNextBreak();
         return false;
       }
@@ -242,14 +253,8 @@ async function triggerBreak(opts = {}) {
     if (!force) await scheduleNextBreak();
     return false;
   }
-  if (tab.url && /^(chrome|edge|about|chrome-extension):/i.test(tab.url)) {
-    if (!force) {
-      await recordStat('skippedBreaks');
-      await scheduleNextBreak();
-    }
-    return false;
-  }
-
+  // Browser pages (chrome://, Web Store…) can't be scripted: sending and
+  // injecting both fail below and the break counts as skipped.
   const picked = pickGif(s.gifList, new Date(), s.morningEnd, s.afternoonEnd);
   const quote = pickQuote(s.quotes, s.quoteCategories, s.quotesEnabled);
   const lang = (typeof resolveLang === 'function') ? resolveLang(s.language) : 'fr';
@@ -309,11 +314,14 @@ async function snooze(minutesArg) {
   await scheduleNextBreak(minutes);
 }
 
+// completed: the break lasted at least half of its duration; a shorter one
+// counts as skipped. A test break leaves the cycle and the stats alone.
 async function onBreakDismissed(completed, test) {
-  // A test break leaves the running cycle alone.
-  if (!test) await scheduleNextBreak();
+  if (!test) {
+    await scheduleNextBreak();
+    await recordStat(completed ? 'totalBreaks' : 'skippedBreaks');
+  }
   if (!completed) return;
-  await recordStat('totalBreaks');
   const { soundEnabled } = await chrome.storage.local.get('soundEnabled');
   if (soundEnabled) await playBell(false);
 }
@@ -331,6 +339,8 @@ chrome.runtime.onInstalled.addListener(async () => {
     const defaults = (typeof buildDefaultQuotes === 'function') ? buildDefaultQuotes(lang) : [];
     await chrome.storage.local.set({ quotes: defaults });
   }
+  const { gifList } = await chrome.storage.local.get('gifList');
+  await chrome.storage.local.set({ gifCount: Array.isArray(gifList) ? gifList.length : 0 });
   await scheduleNextBreak();
 });
 
@@ -369,14 +379,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     onBreakDismissed(!!msg.completed, !!msg.test).then(() => sendResponse({ ok: true }));
     return true;
   }
-  if (msg.type === 'GET_STATE') {
-    getSettings().then(sendResponse);
-    return true;
-  }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
+  // The popup only shows how many images there are: keep a count so it
+  // doesn't have to load the whole library.
+  if (changes.gifList) {
+    const list = changes.gifList.newValue;
+    chrome.storage.local.set({ gifCount: Array.isArray(list) ? list.length : 0 });
+  }
   if (changes.isActive) {
     scheduleNextBreak();
   } else if (

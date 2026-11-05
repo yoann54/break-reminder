@@ -98,7 +98,7 @@ de permissions depuis la 1.1.1.
 | `idle` | permissions | Savoir si l'utilisateur est inactif (clavier/souris) au moment du rappel, pour ne pas afficher de pause lorsqu'il est déjà loin de son ordinateur. |
 | `offscreen` | permissions | Jouer le signal sonore optionnel (désactivé par défaut) au début et à la fin d'une pause. Le son est généré localement, sans fichier ni ressource externe, et le document se ferme après lecture. |
 | `unlimitedStorage` | permissions | Permettre à l'utilisateur de stocker localement plusieurs images personnelles (GIF / photos) sans être bloqué par la limite de 10 Mo du stockage local. Rien n'est synchronisé ni transmis. |
-| `<all_urls>` | host_permissions | Afficher l'écran de pause sur l'onglet actif, quel que soit le site visité. L'extension y ajoute uniquement un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages. L'URL de l'onglet actif est consultée localement, uniquement pour éviter les pages internes du navigateur (`chrome://`, etc.) ; elle n'est ni stockée ni transmise. |
+| `<all_urls>` | host_permissions | Afficher l'écran de pause sur l'onglet actif, quel que soit le site visité. L'extension y ajoute uniquement un overlay visuel : elle ne lit pas, n'analyse pas et ne transmet pas le contenu des pages. L'extension ne lit pas l'URL des onglets. |
 | `content_scripts` sur `<all_urls>` | content_scripts | Même usage que ci-dessus : le script ne fait qu'attendre l'ordre d'afficher l'overlay de pause. |
 
 ## Privacy & Data Use
@@ -160,7 +160,7 @@ https://yoann54.github.io/break-reminder/
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| 1.1.2 | — | Overlay isolé des styles de la page, accessible au clavier (focus piégé puis restauré) ; compte à rebours exact même onglet en arrière-plan ; prochaine pause comptée depuis la fin de la pause ; changer l'intervalle ou les plages horaires conserve le temps écoulé ; avertissement si « Tester la pause » échoue ; nom et description traduits dans 8 langues. Pas de changement de permissions. | Draft |
+| 1.1.2 | — | Overlay isolé des styles de la page, accessible au clavier (focus piégé puis restauré) ; compte à rebours exact même onglet en arrière-plan ; prochaine pause comptée depuis la fin de la pause ; changer l'intervalle ou les plages horaires conserve le temps écoulé ; avertissement si « Tester la pause » échoue ; nom et description traduits dans 8 langues. Stats plus justes : les pauses de test ne comptent plus, une pause écourtée avant la moitié compte comme sautée, les absences et heures hors plage ne comptent plus comme sautées ; le son ne laisse plus de document ouvert ; déposer une image sur la galerie l'ajoute ; popup plus rapide avec une grande galerie ; message clair sur les pages où la pause ne peut pas s'afficher ; Chrome 116 minimum. Pas de changement de permissions. | Draft |
 | 1.1.1 | 2026-10 | Permission `tabs` retirée, `offscreen` ajoutée (son de début/fin) ; une pause reportée n'est plus comptée comme prise ; overlay stylé sur les onglets ouverts avant l'installation ; badge allégé ; import JSON validé. | Published |
 | 1.1.0 | 2026-05-12 | Première publication. | Published |
 

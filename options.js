@@ -187,7 +187,14 @@ function renderGallery(list) {
     tile.addEventListener('drop', async (e) => {
       e.preventDefault();
       tile.classList.remove('drag-over');
-      const fromIdx = Number(e.dataTransfer.getData('text/br-index'));
+      // Files dropped on a tile are added, like on the dropzone.
+      if (e.dataTransfer.files?.length) {
+        await addFiles(Array.from(e.dataTransfer.files));
+        return;
+      }
+      const raw = e.dataTransfer.getData('text/br-index');
+      if (raw === '') return;
+      const fromIdx = Number(raw);
       const toIdx = idx;
       if (Number.isNaN(fromIdx) || fromIdx === toIdx) return;
       const all = await getList();
@@ -487,7 +494,7 @@ async function importData(file) {
     await setStorage(toSet);
     const summary = [];
     if (Array.isArray(toSet.gifList)) summary.push(`${toSet.gifList.length} ${toSet.gifList.length > 1 ? tt('common.images') : tt('common.image')}`);
-    if (Array.isArray(toSet.quotes)) summary.push(`${toSet.quotes.length} messages`);
+    if (Array.isArray(toSet.quotes)) summary.push(tt('common.nQuotes', { n: toSet.quotes.length }));
     setStatus(tt('options.import.success', { summary: summary.join(', ') || 'OK' }));
     await loadAll();
   } catch (e) {

@@ -76,6 +76,14 @@ Pas de changement de permissions.
   changer l'intervalle ou les plages horaires conserve le temps déjà écoulé
 - « Tester la pause » affiche un avertissement si l'overlay n'a pas pu s'afficher
 - Manifest localisé via `_locales/` (8 langues, `default_locale` = `fr`)
+- Stats : pause de test non comptée ; pause terminée avant la moitié = sautée ;
+  absence (idle/verrouillé) et hors plage horaire ne comptent plus comme sautées
+- Document offscreen fermé ~1 s après chaque son
+- Popup : lit `gifCount` (tenu à jour par le service worker) au lieu de toute la galerie
+- Contrôle d'URL `chrome://` supprimé (sans `tabs`, l'URL n'est pas lisible) :
+  le repli d'injection gère ces pages, message popup plus explicite
+- Déposer un fichier sur une vignette l'ajoute (au lieu de déplacer l'image 1)
+- `minimum_chrome_version` : 116 (`runtime.getContexts`)
 
 ## Audit identifié mais non corrigé
 
