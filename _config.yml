@@ -18,3 +18,7 @@ exclude:
   - icons/
   - store/
   - README.md
+  - CLAUDE.md
+  - CHROMEWEBSTORE.md
+  - _locales/
+  - "*.zip"

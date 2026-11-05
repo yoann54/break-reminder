@@ -28,7 +28,8 @@ donnée envoyée sur internet.
   → https://yoann54.github.io/break-reminder/privacy.html
 - Page d'accueil GitHub Pages avec lien vers la privacy
   → https://yoann54.github.io/break-reminder/
-- Documentation de soumission complète : [store/STORE_LISTING.md](store/STORE_LISTING.md)
+- Fiche store de référence : [CHROMEWEBSTORE.md](CHROMEWEBSTORE.md) (à tenir à jour à chaque version)
+- Ancienne documentation de soumission : [store/STORE_LISTING.md](store/STORE_LISTING.md)
   (description courte/longue, single purpose, 7 justifications de permissions, privacy practices form, checklist finale)
 - Promo tile small 440×280 : [store/promo-440x280.png](store/promo-440x280.png)
 - Email de contact dans la privacy : `yoanncooljazz@gmail.com`
@@ -124,6 +125,7 @@ Break-Reminder/
 ├── privacy.md               # Privacy policy (sert via GH Pages)
 ├── index.md                 # Page d'accueil GH Pages
 ├── _config.yml              # Config Jekyll
+├── CHROMEWEBSTORE.md        # ⚠️ HORS ZIP : fiche store (textes, permissions, versions)
 ├── store/                   # ⚠️ HORS ZIP : artefacts de soumission
 │   ├── STORE_LISTING.md     # Textes formulaire Chrome Web Store
 │   └── promo-440x280.png    # Small promo tile
