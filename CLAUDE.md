@@ -65,7 +65,7 @@ ligne, sinon le store refuse le package.
 - Badge allégé, import JSON validé
 - Screenshots : `store/screenshots/01-overlay.png` (4 autres possibles)
 
-### 📦 1.1.2 (en préparation)
+### ✅ 1.1.2 (publiée)
 
 Pas de changement de permissions.
 
@@ -76,6 +76,12 @@ Pas de changement de permissions.
   changer l'intervalle ou les plages horaires conserve le temps déjà écoulé
 - « Tester la pause » affiche un avertissement si l'overlay n'a pas pu s'afficher
 - Manifest localisé via `_locales/` (8 langues, `default_locale` = `fr`)
+
+### 📦 1.1.3 (en préparation)
+
+Pas de changement de permissions. Sur la console : remplacer la justification
+`<all_urls>` (ne mentionne plus la lecture de l'URL), cf. [CHROMEWEBSTORE.md](CHROMEWEBSTORE.md).
+
 - Stats : pause de test non comptée ; pause terminée avant la moitié = sautée ;
   absence (idle/verrouillé) et hors plage horaire ne comptent plus comme sautées
 - Document offscreen fermé ~1 s après chaque son
@@ -87,7 +93,8 @@ Pas de changement de permissions.
 
 ## Audit identifié mais non corrigé
 
-Rien en suspens : les 5 points restants ont été corrigés pour la 1.1.2.
+Rien en suspens : l'audit de novembre 2026 est corrigé dans la 1.1.3.
+À tester : après une mise à jour, la pause s'affiche-t-elle sur les onglets déjà ouverts ?
 
 ## Site GitHub Pages
 
